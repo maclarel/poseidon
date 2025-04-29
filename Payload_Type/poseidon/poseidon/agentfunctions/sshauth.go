@@ -3,6 +3,7 @@ package agentfunctions
 import (
 	"fmt"
 	agentstructs "github.com/MythicMeta/MythicContainer/agent_structs"
+	"github.com/MythicMeta/MythicContainer/mythicrpc"
 	"path/filepath"
 	"strings"
 )
@@ -92,8 +93,10 @@ You can also use this to execute a specific command on the remote hosts via SSH 
 			{
 				Name:             "private_key",
 				ModalDisplayName: "Private Key",
-				Description:      "Authenticate to the designated hosts using this private key (key content or path on disk)",
-				ParameterType:    agentstructs.COMMAND_PARAMETER_TYPE_STRING,
+				ParameterType:        agentstructs.COMMAND_PARAMETER_TYPE_CHOOSE_ONE,
+				Choices:              []string{""},
+				DefaultValue:         "",
+				DynamicQueryFunction: getCreds,
 				ParameterGroupInformation: []agentstructs.ParameterGroupInfo{
 					{
 						ParameterIsRequired: true,
@@ -239,4 +242,25 @@ You can also use this to execute a specific command on the remote hosts via SSH 
 			return args.LoadArgsFromJSONString(input)
 		},
 	})
+}
+
+// getUploadCreds dynamically fetches available credentials from Mythic
+func getCreds(msg agentstructs.PTRPCDynamicQueryFunctionMessage) []string {
+	rpcMessage := mythicrpc.MythicRPCCredentialSearchMessage{
+		TaskID: msg.Callback,
+	}
+
+	rpcResponse, err := mythicrpc.SendMythicRPCCredentialSearch(rpcMessage)
+	if err != nil || !rpcResponse.Success {
+		return []string{"Error fetching credentials"}
+	}
+
+	choices := []string{}
+	for _, cred := range rpcResponse.Credentials {
+		if cred.Account != nil && cred.Realm != nil {
+			choices = append(choices, fmt.Sprintf("Account: %s, Realm: %s, Credential: %s", *cred.Account, *cred.Realm, *cred.Credential))
+		}
+	}
+
+	return choices
 }

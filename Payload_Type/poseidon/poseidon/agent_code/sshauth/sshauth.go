@@ -79,9 +79,17 @@ func PublicKeyFileOrContent(input string) (ssh.AuthMethod, error) {
 	var err error
 
 	// Check if the input contains the typical private key marker 
-	if strings.Contains(input, "-----") {
-		key = []byte(input) // Treat input as private key content
-	} else {
+	//if strings.Contains(input, "-----") {
+	//	key = []byte(input) // Treat input as private key content
+	//} else if strings.Contains(input, "Credential: ") {
+	if strings.Contains(input, "Credential: ") {
+		// Handle the case where the input is a string with "Credential: " prefix
+		// such as returned by Mythic Credentials
+		parts := strings.Split(input, "Credential: ")
+		if len(parts) > 1 {
+			key = []byte(parts[1])
+			} 
+		} else {
 		key, err = ioutil.ReadFile(input) // Treat input as a file path
 		if err != nil {
 			return nil, err
