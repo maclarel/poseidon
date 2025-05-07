@@ -181,6 +181,8 @@ type SendFileToMythicStruct struct {
 	// must supply either the raw bytes (Data) to transfer for the File that should be read and chunked
 	Data *[]byte
 	File *os.File
+	// direct download or compress and download
+	Mode string
 	// channel to indicate once the file transfer has finished so that the task can act accordingly
 	FinishedTransfer chan int
 	// the following are set and used by Poseidon, Task doesn't use
