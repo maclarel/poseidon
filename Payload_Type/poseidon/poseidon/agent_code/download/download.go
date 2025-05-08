@@ -18,6 +18,9 @@ func Run(task structs.Task) {
 	path := task.Params
 	// Get the file size first and then the # of chunks required
 	fullPath, err := filepath.Abs(path)
+	msg := task.NewResponse()
+	msg.UserOutput = "We are in Download's Run function"
+	task.Job.SendResponses <- msg
 	if err != nil {
 		msg := task.NewResponse()
 		msg.SetError(fmt.Sprintf("Error opening file: %s", err.Error()))

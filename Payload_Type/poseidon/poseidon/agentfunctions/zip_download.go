@@ -2,6 +2,7 @@ package agentfunctions
 
 import (
 	agentstructs "github.com/MythicMeta/MythicContainer/agent_structs"
+	//"fmt"
 	"errors"
 )
 
@@ -52,7 +53,8 @@ func init() {
 			return response
 		},
 		TaskFunctionParseArgDictionary: func(args *agentstructs.PTTaskMessageArgsData, input map[string]interface{}) error {
-			 return args.LoadArgsFromDictionary(input)
+			//return errors.New(fmt.Sprintf("Args: %s", args.LoadArgsFromDictionary(input)))
+			return args.LoadArgsFromDictionary(input)
 		},
 		TaskFunctionParseArgString: func(args *agentstructs.PTTaskMessageArgsData, input string) error {
 			if len(input) > 0 {
@@ -62,4 +64,4 @@ func init() {
 			}
 		},
 	})
-}
+} 
