@@ -1,4 +1,4 @@
-package download
+package zip_download
 
 import (
 	"archive/zip"
@@ -72,16 +72,13 @@ func zipFilesAndDirectories(paths []string) (*bytes.Buffer, error) {
 
 // Define a struct to parse parameters
 type zipDownloadArgs struct {
-	Paths    []string `json:"paths"`    // List of file or directory paths
+	Paths    string `json:"paths"`    // List of file or directory paths
 	Compress bool     `json:"compress"` // Option to compress the files/directories
 }
 
 // Run - Function that executes the download task
-func Runn(task structs.Task) {
+func Run(task structs.Task) {
 	msg := task.NewResponse()
-	// debug
-	msg.UserOutput = "We are in Run"
-	task.Job.SendResponses <- msg
 	args := zipDownloadArgs{}
 	err := json.Unmarshal([]byte(task.Params), &args)
 	
