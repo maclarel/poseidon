@@ -72,7 +72,7 @@ func zipFilesAndDirectories(paths []string) (*bytes.Buffer, error) {
 
 // Define a struct to parse parameters
 type zipDownloadArgs struct {
-	Paths    string `json:"paths"`    // List of file or directory paths
+	Paths    []string `json:"paths"`    // List of file or directory paths
 	Compress bool     `json:"compress"` // Option to compress the files/directories
 }
 

@@ -18,9 +18,9 @@ func init() {
 			{
 				Name:             "paths",
 				ModalDisplayName: "Remote Path(s)",
-				ParameterType:    agentstructs.COMMAND_PARAMETER_TYPE_STRING,
+				ParameterType:    agentstructs.COMMAND_PARAMETER_TYPE_ARRAY,
 				Description:      "Paths of file(s) to retrieve",
-				DefaultValue:     "",
+				DefaultValue:     []string{},
 				ParameterGroupInformation: []agentstructs.ParameterGroupInfo{
 					{
 						ParameterIsRequired: true,
@@ -53,7 +53,6 @@ func init() {
 			return response
 		},
 		TaskFunctionParseArgDictionary: func(args *agentstructs.PTTaskMessageArgsData, input map[string]interface{}) error {
-			//return errors.New(fmt.Sprintf("Args: %s", args.LoadArgsFromDictionary(input)))
 			return args.LoadArgsFromDictionary(input)
 		},
 		TaskFunctionParseArgString: func(args *agentstructs.PTTaskMessageArgsData, input string) error {
