@@ -45,12 +45,22 @@ You can also use this to execute a specific command on the remote hosts via SSH 
 					{
 						ParameterIsRequired: true,
 						UIModalPosition:     1,
+						GroupName:           "scp-private-key-credstore",
+					},
+					{
+						ParameterIsRequired: true,
+						UIModalPosition:     1,
 						GroupName:           "run-command-plaintext-password",
 					},
 					{
 						ParameterIsRequired: true,
 						UIModalPosition:     1,
 						GroupName:           "run-command-private-key",
+					},
+					{
+						ParameterIsRequired: true,
+						UIModalPosition:     1,
+						GroupName:           "run-command-private-key-credstore",
 					},
 				},
 			},
@@ -70,6 +80,11 @@ You can also use this to execute a specific command on the remote hosts via SSH 
 						UIModalPosition:     6,
 						GroupName:           "scp-plaintext-password",
 					},
+					{
+						ParameterIsRequired: true,
+						UIModalPosition:     6,
+						GroupName:           "scp-private-key-credstore",
+					},
 				},
 			},
 			{
@@ -88,15 +103,17 @@ You can also use this to execute a specific command on the remote hosts via SSH 
 						UIModalPosition:     7,
 						GroupName:           "scp-plaintext-password",
 					},
+					{
+						ParameterIsRequired: true,
+						UIModalPosition:     7,
+						GroupName:           "scp-private-key-credstore",
+					},
 				},
 			},
 			{
 				Name:             "private_key",
 				ModalDisplayName: "Private Key",
-				ParameterType:        agentstructs.COMMAND_PARAMETER_TYPE_CHOOSE_ONE,
-				Choices:              []string{""},
-				DefaultValue:         "",
-				DynamicQueryFunction: getCreds,
+				ParameterType:        agentstructs.COMMAND_PARAMETER_TYPE_STRING,
 				ParameterGroupInformation: []agentstructs.ParameterGroupInfo{
 					{
 						ParameterIsRequired: true,
@@ -107,6 +124,26 @@ You can also use this to execute a specific command on the remote hosts via SSH 
 						ParameterIsRequired: true,
 						UIModalPosition:     2,
 						GroupName:           "run-command-private-key",
+					},
+				},
+			},
+			{
+				Name:             "cred", // can't share `private_key` name
+				ModalDisplayName: "Credential",
+				ParameterType:        agentstructs.COMMAND_PARAMETER_TYPE_CHOOSE_ONE,
+				Choices:              []string{""},
+				DefaultValue:         "",
+				DynamicQueryFunction: getCreds,
+				ParameterGroupInformation: []agentstructs.ParameterGroupInfo{
+					{
+						ParameterIsRequired: true,
+						UIModalPosition:     2,
+						GroupName:           "scp-private-key-credstore",
+					},
+					{
+						ParameterIsRequired: true,
+						UIModalPosition:     2,
+						GroupName:           "run-command-private-key-credstore",
 					},
 				},
 			},
@@ -128,6 +165,11 @@ You can also use this to execute a specific command on the remote hosts via SSH 
 						GroupName:           "run-command-private-key",
 					},
 					{
+						ParameterIsRequired: true,
+						UIModalPosition:     5,
+						GroupName:           "scp-private-key-credstore",
+					},
+					{
 						ParameterIsRequired: false,
 						UIModalPosition:     5,
 						GroupName:           "scp-plaintext-password",
@@ -136,6 +178,11 @@ You can also use this to execute a specific command on the remote hosts via SSH 
 						ParameterIsRequired: false,
 						UIModalPosition:     5,
 						GroupName:           "run-command-plaintext-password",
+					},
+					{
+						ParameterIsRequired: true,
+						UIModalPosition:     5,
+						GroupName:           "run-command-private-key-credstore",
 					},
 				},
 			},
@@ -172,6 +219,11 @@ You can also use this to execute a specific command on the remote hosts via SSH 
 					{
 						ParameterIsRequired: true,
 						UIModalPosition:     4,
+						GroupName:           "scp-private-key-credstore",
+					},
+					{
+						ParameterIsRequired: true,
+						UIModalPosition:     4,
 						GroupName:           "run-command-plaintext-password",
 					},
 					{
@@ -183,6 +235,11 @@ You can also use this to execute a specific command on the remote hosts via SSH 
 						ParameterIsRequired: true,
 						UIModalPosition:     4,
 						GroupName:           "scp-private-key",
+					},
+					{
+						ParameterIsRequired: true,
+						UIModalPosition:     4,
+						GroupName:           "run-command-private-key-credstore",
 					},
 				},
 			},
@@ -201,6 +258,11 @@ You can also use this to execute a specific command on the remote hosts via SSH 
 						ParameterIsRequired: true,
 						UIModalPosition:     6,
 						GroupName:           "run-command-private-key",
+					},
+					{
+						ParameterIsRequired: true,
+						UIModalPosition:     6,
+						GroupName:           "run-command-private-key-credstore",
 					},
 				},
 			},
@@ -244,7 +306,7 @@ You can also use this to execute a specific command on the remote hosts via SSH 
 	})
 }
 
-// getUploadCreds dynamically fetches available credentials from Mythic
+// getCreds dynamically fetches available credentials from Mythic
 func getCreds(msg agentstructs.PTRPCDynamicQueryFunctionMessage) []string {
 	rpcMessage := mythicrpc.MythicRPCCredentialSearchMessage{
 		TaskID: msg.Callback,

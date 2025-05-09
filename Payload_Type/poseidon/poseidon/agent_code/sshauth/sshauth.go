@@ -44,6 +44,7 @@ type SSHTestParams struct {
 	Port        int      `json:"port"`
 	Username    string   `json:"username"`
 	Password    string   `json:"password"`
+	Cred        string   `json:"cred"`
 	PrivateKey  string   `json:"private_key"`
 	Command     string   `json:"command"`
 	Source      string   `json:"source"`
@@ -254,7 +255,7 @@ func Run(task structs.Task) {
 		return
 	}
 
-	if params.Password == "" && params.PrivateKey == "" {
+	if params.Password == "" && params.PrivateKey == "" && params.Cred == "" {
 		msg.UserOutput = "Missing password parameter"
 		msg.Completed = true
 		msg.Status = "error"
@@ -288,12 +289,23 @@ func Run(task structs.Task) {
 		params.Port = 22
 	}
 
-	cred := Credential{
-		Username:   params.Username,
-		Password:   params.Password,
-		PrivateKey: params.PrivateKey,
+	// Handle Cred vs PrivateKey
+	var cred Credential 
+	if params.Cred != "" { // use Cred if provided
+		cred = Credential{
+			Username:   params.Username,
+			Password:   params.Password,
+			PrivateKey: params.Cred,
+		}
+	} else { // use PrivateKey if provided
+		cred = Credential{
+			Username:   params.Username,
+			Password:   params.Password,
+			PrivateKey: params.PrivateKey,
+		}
 	}
-	// log.Println("Beginning brute force...")
+
+  // log.Println("Beginning brute force...")
 	results := SSHBruteForce(totalHosts, params.Port, []Credential{cred}, false, params.Command, params.Source, params.Destination)
 	// log.Println("Finished!")
 	if len(results) > 0 {
